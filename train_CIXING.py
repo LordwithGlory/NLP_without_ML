@@ -20,9 +20,9 @@ def prepare_sequence(seq, to_ix):
     idxs=[]
     for w in seq:
         if to_ix.get(w):
-            idxs.append(0)
+            idxs.append(to_ix.get(w))
         else:
-            idxs.append(to_ix[w])
+            idxs.append(0)
     # idxs = [to_ix[w] for w in seq]
     return torch.tensor(idxs, dtype=torch.long)
 
@@ -182,72 +182,72 @@ STOP_TAG = "<STOP>"
 EMBEDDING_DIM = 5
 HIDDEN_DIM = 4
 
-# Make up some training data
-training_data=[]
-training_data,tags_set = loading_data('train_pos999.txt')
-# 字典用于对应词性和数字标记
-tag_to_ix={}
-tags_set_num=0
-for onetag in tags_set:
-    tag_to_ix[onetag]=tags_set_num
-    tags_set_num=tags_set_num+1
-tag_to_ix[START_TAG]=len(tag_to_ix)
-tag_to_ix[STOP_TAG]=len(tag_to_ix)
+# # Make up some training data
+# training_data=[]
+# training_data,tags_set = loading_data('train_pos999.txt')
+# # 字典用于对应词性和数字标记
+# tag_to_ix={}
+# tags_set_num=0
+# for onetag in tags_set:
+#     tag_to_ix[onetag]=tags_set_num
+#     tags_set_num=tags_set_num+1
+# tag_to_ix[START_TAG]=len(tag_to_ix)
+# tag_to_ix[STOP_TAG]=len(tag_to_ix)
 
-word_to_ix = {}
-for sentence, tags in training_data:
-    for word in sentence:
-        if word not in word_to_ix:
-            word_to_ix[word] = len(word_to_ix)
+# word_to_ix = {}
+# for sentence, tags in training_data:
+#     for word in sentence:
+#         if word not in word_to_ix:
+#             word_to_ix[word] = len(word_to_ix)
 
-model = BiLSTM_CRF(len(word_to_ix), tag_to_ix, EMBEDDING_DIM, HIDDEN_DIM)
-optimizer = optim.SGD(model.parameters(), lr=0.01, weight_decay=1e-4)
-# Check predictions before training
+# model = BiLSTM_CRF(len(word_to_ix), tag_to_ix, EMBEDDING_DIM, HIDDEN_DIM)
+# optimizer = optim.SGD(model.parameters(), lr=0.01, weight_decay=1e-4)
+# # Check predictions before training
 
-with torch.no_grad():
-    for i in range(len(training_data)):
-        precheck_sent = prepare_sequence(training_data[i][0], word_to_ix)
-        precheck_tags = torch.tensor([tag_to_ix[t] for t in training_data[i][1]], dtype=torch.long)
-        #print(model(precheck_sent))
+# with torch.no_grad():
+#     for i in range(len(training_data)):
+#         precheck_sent = prepare_sequence(training_data[i][0], word_to_ix)
+#         precheck_tags = torch.tensor([tag_to_ix[t] for t in training_data[i][1]], dtype=torch.long)
+#         #print(model(precheck_sent))
 
 
-# Make sure prepare_sequence from earlier in the LSTM section is loaded
-lasttime=time.time()
-for epoch in range(
-        100):  # again, normally you would NOT do 300 epochs, it is toy data
-    for sentence,tags in training_data:
-        if len(sentence)==0:
-            continue
-        # Step 1. Remember that Pytorch accumulates gradients.
-        # We need to clear them out before each instance
-        model.zero_grad()
+# # Make sure prepare_sequence from earlier in the LSTM section is loaded
+# lasttime=time.time()
+# for epoch in range(
+#         100):  # again, normally you would NOT do 300 epochs, it is toy data
+#     for sentence,tags in training_data:
+#         if len(sentence)==0:
+#             continue
+#         # Step 1. Remember that Pytorch accumulates gradients.
+#         # We need to clear them out before each instance
+#         model.zero_grad()
 
-        # Step 2. Get our inputs ready for the network, that is,
-        # turn them into Tensors of word indices.
-        sentence_in = prepare_sequence(sentence, word_to_ix)
-        targets = torch.tensor([tag_to_ix[t] for t in tags], dtype=torch.long)
+#         # Step 2. Get our inputs ready for the network, that is,
+#         # turn them into Tensors of word indices.
+#         sentence_in = prepare_sequence(sentence, word_to_ix)
+#         targets = torch.tensor([tag_to_ix[t] for t in tags], dtype=torch.long)
 
-        # Step 3. Run our forward pass.
-        loss = model.neg_log_likelihood(sentence_in, targets)
+#         # Step 3. Run our forward pass.
+#         loss = model.neg_log_likelihood(sentence_in, targets)
 
-        # Step 4. Compute the loss, gradients, and update the parameters by
-        # calling optimizer.step()
-        loss.backward()
-        optimizer.step()
-    nowtime=time.time()
-    print("The time of "+str(epoch)+" = "+str(nowtime-lasttime))
-    lasttime=nowtime
-    filename="cixingnlpmodle"+str(epoch)+".m"
-    torch.save(model.state_dict(),filename)
-    nowtime=time.time()
-    print("The time of saving model "+str(epoch)+" = "+str(nowtime-lasttime))
-    lasttime=nowtime
+#         # Step 4. Compute the loss, gradients, and update the parameters by
+#         # calling optimizer.step()
+#         loss.backward()
+#         optimizer.step()
+#     nowtime=time.time()
+#     print("The time of "+str(epoch)+" = "+str(nowtime-lasttime))
+#     lasttime=nowtime
+#     filename="cixingnlpmodle"+str(epoch)+".m"
+#     torch.save(model.state_dict(),filename)
+#     nowtime=time.time()
+#     print("The time of saving model "+str(epoch)+" = "+str(nowtime-lasttime))
+#     lasttime=nowtime
     
-# Check predictions after training
-f=open("fenciresult","a",encoding="utf-8")
-test_data=annyfile("test_cws1.txt")
-with torch.no_grad():
-    for i in range(len(test_data)):
-        precheck_sent = prepare_sequence(test_data[i][0], word_to_ix)
-        f.write("预测结果：",model(precheck_sent))
-# We got it!
+# # Check predictions after training
+# f=open("fenciresult","a",encoding="utf-8")
+# test_data=annyfile("test_cws1.txt")
+# with torch.no_grad():
+#     for i in range(len(test_data)):
+#         precheck_sent = prepare_sequence(test_data[i][0], word_to_ix)
+#         f.write("预测结果：",model(precheck_sent))
+# # We got it!
