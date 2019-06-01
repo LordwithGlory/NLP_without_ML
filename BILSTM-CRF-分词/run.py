@@ -58,6 +58,6 @@ def model_load_run(modlename,testfile):
     print(corretNum/predNum,corretNum/hisNum)
 
 # 可以在train_model函数中修改训练集默认为train_cws.txt
-# modelname=train_model()
+modelname=train_model()
 # 对于model进行预测
 model_load_run("fencinlpmodle99.m","test2.txt")
